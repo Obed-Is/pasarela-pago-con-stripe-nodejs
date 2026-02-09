@@ -1,0 +1,21 @@
+{
+  "name": "pasarela-de-pago-stripe",
+  "version": "1.0.0",
+  "description": "Proyecto test para integrar la pasarela de pago stripe",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch index.js",
+    "stripe-listen" : "stripe lister --forward-to http://localhost:3000/webhook"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "17.2.4",
+    "express": "5.2.1",
+    "stripe": "20.3.1"
+  },
+  "devDependencies": {
+    "morgan": "1.10.1"
+  }
+}
