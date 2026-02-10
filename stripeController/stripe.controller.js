@@ -45,6 +45,7 @@ export class StripeController {
                     product: productStripe.id,
                     unit_amount: producto.precio,
                     currency: 'USD',
+                    nickname: producto.nombre
                 })
             }
             data[0]["product-exist"] = true;
@@ -57,9 +58,12 @@ export class StripeController {
         }
     }
 
-    //esto valida si los productos ya estan creados o no
+    //esto valida si los productos ya estan creados o no al iniciar el proyecto por primera vez
     async #validateProductCreate() {
         try {
+                                ////////// NOTA ///////////
+            ///////// Si los productos se borran manualmente en stripe /////////
+            //////// se debe cambiar el valor de product-exist a falso en el json /////////
             const archivo = JSON.parse(await fs.readFile('base-stripe.json', 'utf8'));
 
             return archivo;
@@ -67,7 +71,7 @@ export class StripeController {
             console.log(error)
             // Si el archivo no existe, lo creamos
             if (error.code === 'ENOENT') {
-                const dataInicial = [{ "product-exist": false }];
+                const dataInicial = [{ "product-exist" : false }];
 
                 await fs.writeFile(
                     'base-stripe.json',
@@ -79,7 +83,30 @@ export class StripeController {
             return false;
         }
     }
-}
 
-// const as = new StripeController();
-// console.log(await as.validateProductCreate())
+    async getPricesStripe(req, res) {
+        try {
+            const pricesStripe = await this.stripe.prices.list({
+                active: true
+            });
+
+            if (pricesStripe.data.length === 0) {
+                return res.status(200).json({ success: true, message: 'No hay precios activos' });
+            } 
+
+            const formatPrices = [];
+
+            for (const product of pricesStripe.data) {
+                formatPrices.push({
+                    producto: product.nickname,
+                    precio_id: product.id
+                })
+            }
+
+            return res.status(200).json({ success: true, prices: formatPrices })
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ success: false, message: 'Error al obtener los productos' })
+        }
+    }
+}

@@ -13,7 +13,7 @@ const stripeController = new StripeController();
 app.use(morgan('dev'));
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, './views/main.html')));
-
+app.get('/prices', (req, res) => stripeController.getPricesStripe(req, res));
 
 app.post('/create-products', (req, res) => stripeController.stripeCreateProducts(req, res));
 
