@@ -20,8 +20,10 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => st
 app.use(express.json());
 
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, './views/main.html')));
+app.get('/history', (req, res) => res.sendFile(path.join(__dirname, './views/history.html')));
 app.get('/prices', (req, res) => stripeController.getPricesStripe(req, res));
 app.get('/success', (req, res) => stripeController.redirectEndHook(req, res));
+app.get('/history-payments', (req, res) => stripeController.getHistoryPayments(req, res));
 
 app.post('/create-products', (req, res) => stripeController.stripeCreateProducts(req, res));
 app.post('/create-checkout-session', (req, res) => stripeController.saleInStripe(req, res));

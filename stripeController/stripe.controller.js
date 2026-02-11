@@ -209,4 +209,14 @@ export class StripeController {
 
         return res.status(200).json({ success: false })
     }
+
+    async getHistoryPayments(req, res) {
+        try {
+            const dataFile = JSON.parse(await fs.readFile('base-stripe.json', 'utf8'));
+            dataFile.splice(0, 1)
+            return res.status(200).json({ success: true, data: dataFile })
+        } catch (error) {
+            return res.status(500).json({ success: false, message: 'Error al obtener el historial de pagos' });
+        }
+    }
 }
