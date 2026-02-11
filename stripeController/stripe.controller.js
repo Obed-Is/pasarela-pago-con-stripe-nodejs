@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import * as fs from 'node:fs/promises'
+import { randomUUID } from "node:crypto";
 
 const keyStripe = process.env.STRIPE_KEY_TEST_SECRET;
 
@@ -61,7 +62,7 @@ export class StripeController {
     //esto valida si los productos ya estan creados o no al iniciar el proyecto por primera vez
     async #validateProductCreate() {
         try {
-                                ////////// NOTA ///////////
+            ////////// NOTA ///////////
             ///////// Si los productos se borran manualmente en stripe /////////
             //////// se debe cambiar el valor de product-exist a falso en el json /////////
             const archivo = JSON.parse(await fs.readFile('base-stripe.json', 'utf8'));
@@ -92,7 +93,7 @@ export class StripeController {
 
             if (pricesStripe.data.length === 0) {
                 return res.status(200).json({ success: true, message: 'No hay precios activos' });
-            } 
+            }
 
             const formatPrices = [];
 
@@ -108,5 +109,85 @@ export class StripeController {
             console.log(error);
             return res.status(500).json({ success: false, message: 'Error al obtener los productos' })
         }
+    }
+
+    async saleInStripe(req, res) {
+        const priceId = req.body.price_id;
+
+        const session = await this.stripe.checkout.sessions.create({
+            line_items: [
+                {
+                    price: priceId,
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: 'http://localhost:3000/success',
+            cancel_url: 'http://localhost:3000/'
+        });
+
+        res.redirect(session.url);
+    }
+
+    //configuracion del webhook de stripe
+    async stripeWebhook(req, res) {
+        //firma que envia stripe para validar el proceso
+        const sig = req.headers['stripe-signature'] + "asdnaskldansdl";
+        const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+        let event;
+        try {
+            //aqui se verifica que la firma del webhook sea valida
+            event = this.stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+            console.log(req.body)
+        } catch (err) {
+            console.log(`La firma del webhook fallo: ${err.message}`);
+            return res.status(400).json({ success: false, message: 'Error al verificar el webhook' });
+        }
+
+        if (event.type === 'payment_intent.succeeded') {
+            // cuando todos los procesos han sido aprobados pasa a guardar el registro en local
+            this.handlePaymentSucceeded(event.data.object);
+        }
+
+        console.log('///////////////PAGO EXITOSO///////////////')
+        return res.status(200).json({ success: true, message: 'Pago realizado con exito' });
+    }
+
+    //esto se usa para verificar si ya existe el payment ya q stripe puede lanzar diferentes llamadas al webhook
+    //por problemas de red o perdidas.
+    async handlePaymentSucceeded(paymentIntent) {
+        const dataFile = await JSON.parse(await fs.readFile('base-stripe.json', 'utf8'));
+        const existing = dataFile.find((payment) => payment.idPayment === paymentIntent.id)
+
+        if (existing) {
+            /// Si ya existe el paymentIntent.id en el json 
+            // significa q ya se proceso y guardo entonces solo salimos de la funcion 
+            console.log(`Payment ${paymentIntent.id} ya esta procesado`);
+            return;
+        }
+
+        // cuando el proceso se completa por primera vez guardanis su ID para mantener un registro
+        // 
+        const UUID = randomUUID();
+        const fechaActual = new Date();
+        fechaActual.setMonth(fechaActual.getMonth() + 1);
+
+        const newDataPayment = {
+            id: UUID,
+            idPayment: paymentIntent.id,
+            amount: paymentIntent.amount.toFixed(2),
+            state: paymentIntent.status,
+            customer: paymentIntent.customer,
+            dateExpired: fechaActual.toISOString().split('T')[0]
+        }
+
+        dataFile.push(newDataPayment);
+        await fs.writeFile('base-stripe.json', JSON.stringify(dataFile, null, 2), 'utf8');
+        return;
+    }
+
+    async redirectEndHook(req, res) {
+        res.redirect('/?success=true')
     }
 }
