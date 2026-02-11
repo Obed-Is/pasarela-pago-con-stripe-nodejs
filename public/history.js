@@ -44,11 +44,12 @@ function createPaymentElement(payment) {
 
   const statusClass = getStatusClass(payment.state);
   const statusText = getStatusText(payment.state);
+  const amountParsed = parseFloat(payment.amount / 100).toFixed(2);
 
   div.innerHTML = `
     <div class="history-header">
       <span class="payment-id">${payment.idPayment || payment.id || 'N/A'}</span>
-      <span class="payment-amount">$${payment.amount || '0'}</span>
+      <span class="payment-amount">$${amountParsed}</span>
     </div>
     <div class="payment-details">
       <div class="detail-item">
@@ -57,7 +58,7 @@ function createPaymentElement(payment) {
       </div>
       <div class="detail-item">
         <span class="detail-label">Monto</span>
-        <span class="detail-value">$${payment.amount || '0'}</span>
+        <span class="detail-value">$${amountParsed}</span>
       </div>
       <div class="detail-item">
         <span class="detail-label">Estado</span>

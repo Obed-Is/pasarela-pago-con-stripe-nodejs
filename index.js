@@ -2,33 +2,24 @@ import express from 'express';
 import morgan from 'morgan';
 import path from 'node:path'
 import 'dotenv/config'
-import { StripeController } from './stripeController/stripe.controller.js';
+
+import stripeRoutes from './routes/stripe.routes.js';
+import pageRoutes from './routes/pages.routes.js';
+import stripeWebhookRoutes from './routes/stripe.webhook.routes.js';
 
 const app = express();
 const portApp = process.env.SERVER_PORT || 4000;
-
 const __dirname = import.meta.dirname;
-const stripeController = new StripeController();
 
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, 'public')));
-//webhook de stripe
-//ponerlo antes del middleware de express.json() evita q express convierta el body en objeto
-app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => stripeController.stripeWebhook(req, res))
+
+app.use('/', stripeWebhookRoutes);
 
 app.use(express.json());
-
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, './views/main.html')));
-app.get('/history', (req, res) => res.sendFile(path.join(__dirname, './views/history.html')));
-app.get('/prices', (req, res) => stripeController.getPricesStripe(req, res));
-app.get('/success', (req, res) => stripeController.redirectEndHook(req, res));
-app.get('/history-payments', (req, res) => stripeController.getHistoryPayments(req, res));
-
-app.post('/create-products', (req, res) => stripeController.stripeCreateProducts(req, res));
-app.post('/create-checkout-session', (req, res) => stripeController.saleInStripe(req, res));
-
-app.post('/valid-payment', (req, res) => stripeController.validatePayment(req, res));
+app.use('/', pageRoutes);
+app.use('/', stripeRoutes);
 
 app.listen(portApp, () => {
   console.log(`App ejecutando en http://localhost:${portApp}/`)
