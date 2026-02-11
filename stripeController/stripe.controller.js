@@ -151,7 +151,11 @@ export class StripeController {
 
         if (event.type === 'payment_intent.succeeded') {
             // cuando todos los procesos han sido aprobados pasa a guardar el registro en local
-            this.handlePaymentSucceeded(event.data.object);
+            this.handlePaymentStripe(event.data.object);
+        }else if (event.type === 'charge.failed') {
+            // aqui es cuando la tarjeta esta rechazada/caducado/invalida/saldo insuficiente 
+            // por el ahora solo se guarda como historial de transaccion
+            this.handlePaymentStripe(event.data.object);
         }
 
         return res.status(200).json({ success: true, message: 'Pago realizado con exito' });
@@ -159,14 +163,14 @@ export class StripeController {
 
     //esto se usa para verificar si ya existe el payment ya q stripe puede lanzar diferentes llamadas al webhook
     //por problemas de red o perdidas.
-    async handlePaymentSucceeded(paymentIntent) {
+    async handlePaymentStripe(paymentIntent) {
         const dataFile = await JSON.parse(await fs.readFile('base-stripe.json', 'utf8'));
         const existing = dataFile.find((payment) => payment.idPayment === paymentIntent.id)
 
         if (existing) {
             /// Si ya existe el paymentIntent.id en el json 
             // significa q ya se proceso y guardo entonces solo salimos de la funcion 
-            (`Payment ${paymentIntent.id} ya esta procesado`);
+            // (`Payment ${paymentIntent.id} ya esta procesado`);
             return;
         }
 
@@ -181,7 +185,6 @@ export class StripeController {
             idPayment: paymentIntent.id,
             amount: paymentIntent.amount.toFixed(2),
             state: paymentIntent.status,
-            customer: paymentIntent.customer,
             dateExpired: fechaActual.toISOString().split('T')[0]
         }
 

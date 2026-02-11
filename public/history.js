@@ -4,7 +4,6 @@ async function loadPaymentHistory() {
   try {
     const response = await fetch('/history-payments');
     const data = await response.json();
-    console.log(data)
 
     document.getElementById('loading').style.display = 'none';
 
