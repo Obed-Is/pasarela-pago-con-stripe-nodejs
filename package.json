@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch index.js",
-    "stripe-listen" : "stripe lister --forward-to http://localhost:3000/webhook"
+    "stripe-listen" : "stripe listen --forward-to http://localhost:3000/webhook"
   },
   "author": "",
   "license": "ISC",
