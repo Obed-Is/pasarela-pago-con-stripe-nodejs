@@ -23,16 +23,18 @@ Una pasarela de pago implementada con Stripe, que gestiona el ciclo completo de 
 
 ```
 pasarela-de-pago-stripe/
+├── public/
+│   └── history.js    # Logica del historial de pagos
+│   └── main.js       # Logica de la pagina principal de planes
+├── routes/
+│   └── pages.routes.js    # Endpoints para el manejo de las vistas
+│   └── stripe.routes.js            # Endpoints para manejo de logica de Stripe
+│   └── stripe.webhook.routes.js            # Endpoints para manejo de webhook
 ├── stripeController/
 │   └── stripe.controller.js    # Logica de Stripe y webhooks
 ├── views/
 │   ├── main.html              # Pagina principal con planes
-│   ├── success.html           # Pagina de pago exitoso
 │   └── history.html           # Historial de pagos
-├── public/
-│   └── js/
-│       ├── main.js            # JavaScript de pagina principal
-│       └── history.js         # JavaScript de historial
 ├── index.js                  # Servidor Express y rutas
 ├── base-stripe.json          # Base de datos local de pagos
 └── README.md                 
