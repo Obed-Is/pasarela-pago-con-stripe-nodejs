@@ -110,20 +110,29 @@ export class StripeController {
 
     async saleInStripe(req, res) {
         const priceId = req.body.price_id;
+        if (!priceId.startsWith('price_')) {
+            return res.status(404).redirect('/?success=false');
+        }
 
-        const session = await this.stripe.checkout.sessions.create({
-            line_items: [
-                {
-                    price: priceId,
-                    quantity: 1,
-                },
-            ],
-            mode: 'payment',
-            success_url: 'http://localhost:3000/success',
-            cancel_url: 'http://localhost:3000/'
-        });
+        try {
+            const session = await this.stripe.checkout.sessions.create({
+                line_items: [
+                    {
+                        price: priceId,
+                        quantity: 1,
+                    },
+                ],
+                mode: 'payment',
+                success_url: 'http://localhost:3000/success',
+                cancel_url: 'http://localhost:3000/'
+            });
 
-        res.redirect(session.url);
+            res.redirect(session.url);
+        } catch (error) {
+            // posible caso de q el id del producto sea invalido o alterado
+            // entonces solo se le redirije sin dar mas informacion por ahora
+            res.redirect('/')
+        }
     }
 
     //configuracion del webhook de stripe
