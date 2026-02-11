@@ -72,7 +72,7 @@ export class StripeController {
             console.log(error)
             // Si el archivo no existe, lo creamos
             if (error.code === 'ENOENT') {
-                const dataInicial = [{ "product-exist" : false }];
+                const dataInicial = [{ "product-exist": false }];
 
                 await fs.writeFile(
                     'base-stripe.json',
@@ -132,7 +132,7 @@ export class StripeController {
     //configuracion del webhook de stripe
     async stripeWebhook(req, res) {
         //firma que envia stripe para validar el proceso
-        const sig = req.headers['stripe-signature'] + "asdnaskldansdl";
+        const sig = req.headers['stripe-signature'];
         const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
         let event;
@@ -188,6 +188,32 @@ export class StripeController {
     }
 
     async redirectEndHook(req, res) {
-        res.redirect('/?success=true')
+        try {
+            const dataFile = JSON.parse(await fs.readFile('base-stripe.json', 'utf8'));
+            //aqui ya q solo es entorno local se llama al ultimo indice q es la transaccion mas reciente
+            //caso contrario se llamaria con el id del usuario o identificador y se procesaria la solicitud
+            const dataPayment = dataFile.at(-1);
+            if (dataPayment.state !== 'succeeded') return res.redirect(`/?id-payment=${0}&?status=false`);
+
+            return res.redirect(`/?id-payment=${dataPayment.idPayment}&status=true`)
+        } catch (error) {
+            console.log(error)
+            return res.redirect(`/?id-payment=${0}&?status=false`);
+        }
+    }
+
+    async validatePayment(req, res) {
+        const idPaymentBody = req.body.idPayment;
+        if (!idPaymentBody) return res.status(400).json({ success: false, message: 'Identificador invalido' });
+
+        const dataFile = JSON.parse(await fs.readFile('base-stripe.json', 'utf8'));
+        const dataPayment = dataFile.find((payment) => payment.idPayment === idPaymentBody)
+        if (!dataPayment) return res.status(404).json({ success: false, message: 'Registro no encontrado' });
+
+        if (dataPayment.state === 'succeeded') {
+            return res.status(200).json({ success: true })
+        }
+
+        return res.status(200).json({ success: false })
     }
 }

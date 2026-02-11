@@ -460,11 +460,13 @@
 <script>
   //obtiene los id de cada plan para los precios en caso contrario manda una alerta para agregarlos
   getPrices()
+  detectedQueryString()
+
   async function getPrices() {
     try {
       const response = await fetch('http://localhost:3000/prices', {
         headers: {
-          'Content-type': 'application/json'
+          'Content-Type': 'application/json'
         }
       });
       const data = await response.json();
@@ -529,7 +531,7 @@
       const response = await fetch('http://localhost:3000/create-products', {
         method: 'POST',
         headers: {
-          'Content-type': 'application/json'
+          'Content-Type': 'application/json'
         }
       });
 
@@ -558,6 +560,54 @@
       })
     }
   }
+
+  async function detectedQueryString() {
+    let url = new URLSearchParams(window.location.search);
+    const idPayment = url.get('id-payment');
+
+    if (!idPayment) return;
+
+    try {
+      const response = await fetch(`http://localhost:3000/valid-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ idPayment })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        return Swal.fire({
+          title: '¡Compra exitosa!',
+          text: `La compra del plan fue exitosa, puede comprobar el historial de compra o seguir adquiriendo planes de forma practica`,
+          icon: 'success'
+        }).then(() => {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        });
+      }
+
+      return Swal.fire({
+        title: 'Pago no completado',
+        text: 'El pago no pudo confirmarse. Si el problema persiste, verifica tu método de pago o contacta a soporte.',
+        icon: 'warning'
+      }).then(() => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+
+    } catch (error) {
+      return Swal.fire({
+        title: 'Pago no completado',
+        text: 'El pago no pudo confirmarse. Si el problema persiste, verifica tu método de pago o contacta a soporte.',
+        icon: 'warning'
+      }).then(() => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+
+    }
+  }
+
 </script>
 
 </html>
