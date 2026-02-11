@@ -54,7 +54,6 @@ export class StripeController {
 
             return res.status(200).json({ success: true, message: 'Productos creados' })
         } catch (error) {
-            console.log('ERROR AL CREAR LOS PRODUCTOS: ', error)
             return res.status(409).json({ success: false, message: 'Ocurrio un error al crear los productos' })
         }
     }
@@ -69,7 +68,6 @@ export class StripeController {
 
             return archivo;
         } catch (error) {
-            console.log(error)
             // Si el archivo no existe, lo creamos
             if (error.code === 'ENOENT') {
                 const dataInicial = [{ "product-exist": false }];
@@ -106,7 +104,6 @@ export class StripeController {
 
             return res.status(200).json({ success: true, prices: formatPrices })
         } catch (error) {
-            console.log(error);
             return res.status(500).json({ success: false, message: 'Error al obtener los productos' })
         }
     }
@@ -139,9 +136,7 @@ export class StripeController {
         try {
             //aqui se verifica que la firma del webhook sea valida
             event = this.stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-            console.log(req.body)
         } catch (err) {
-            console.log(`La firma del webhook fallo: ${err.message}`);
             return res.status(400).json({ success: false, message: 'Error al verificar el webhook' });
         }
 
@@ -150,7 +145,6 @@ export class StripeController {
             this.handlePaymentSucceeded(event.data.object);
         }
 
-        console.log('///////////////PAGO EXITOSO///////////////')
         return res.status(200).json({ success: true, message: 'Pago realizado con exito' });
     }
 
@@ -163,7 +157,7 @@ export class StripeController {
         if (existing) {
             /// Si ya existe el paymentIntent.id en el json 
             // significa q ya se proceso y guardo entonces solo salimos de la funcion 
-            console.log(`Payment ${paymentIntent.id} ya esta procesado`);
+            (`Payment ${paymentIntent.id} ya esta procesado`);
             return;
         }
 
@@ -197,7 +191,6 @@ export class StripeController {
 
             return res.redirect(`/?id-payment=${dataPayment.idPayment}&status=true`)
         } catch (error) {
-            console.log(error)
             return res.redirect(`/?id-payment=${0}&?status=false`);
         }
     }

@@ -517,7 +517,6 @@
 
       return;
     } catch (error) {
-      console.log(error)
       return Swal.fire({
         title: 'Error con STRIPE',
         text: 'Ocurrio un error al intentar obtener los precios de los productos en STRIPE',
@@ -552,7 +551,6 @@
         text: 'Los productos fueron creados correctamente'
       });
     } catch (error) {
-      console.log(error)
       return Swal.fire({
         title: 'Error con STRIPE',
         text: 'Ocurrio un error al intentar crear los productos en STRIPE',
