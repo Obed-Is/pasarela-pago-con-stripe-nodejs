@@ -40,8 +40,10 @@ async function getPrices() {
           });
 
           await createProducts();
-
+          window.history.replaceState({}, document.title, window.location.pathname);
           Swal.close();
+        } else {
+          window.history.replaceState({}, document.title, window.location.pathname);
         }
       })
     }
