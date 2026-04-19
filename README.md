@@ -78,6 +78,8 @@ La aplicacion implementa webhooks para recibir eventos en tiempo real:
 
 ## Instalacion y Ejecucion
 
+Para usar el proyecto debes tener creada una cuenta en Stripe [stripe.com](https://stripe.com/es) y configurar todo lo necesario para tener un proyecto en entorno de prubas
+
 1. **Clonar el repositorio**:
    ```bash
    git clone https://github.com/Obed-Is/pasarela-pago-con-stripe-nodejs.git
